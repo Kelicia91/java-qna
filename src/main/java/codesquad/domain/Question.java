@@ -1,6 +1,7 @@
 package codesquad.domain;
 
 import javax.persistence.*;
+import java.util.List;
 import java.util.Objects;
 
 @Entity
@@ -20,13 +21,28 @@ public class Question {
     @Column(nullable = false)
     private String contents;
 
+    // answer repository 를 만들지 않아도 cascade 설정만으로 crud 가능!
+    @OneToMany(mappedBy = "question", fetch = FetchType.EAGER)
+    //@OrderBy("answerId DESC")
+    //@JsonIgnore
+    private List<Answer> answers;
+
+    @Column
+    private boolean deleted = false;
+
+
     public Question() {
     }
 
     public Question(User writer, String title, String contents) {
+        this(writer, title, contents, null);
+    }
+
+    public Question(User writer, String title, String contents, List<Answer> answers) {
         this.writer = writer;
         this.title = title;
         this.contents = contents;
+        this.answers = answers;
     }
 
     public Long getId() {
@@ -61,6 +77,22 @@ public class Question {
         this.contents = contents;
     }
 
+    public List<Answer> getAnswers() {
+        return answers;
+    }
+
+    public void setAnswers(List<Answer> answers) {
+        this.answers = answers;
+    }
+
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
+    }
+
     public void update(Question question) {
         if (!matchId(question)) return;
         if (!matchWriter(question.writer.getId())) return;
@@ -74,6 +106,33 @@ public class Question {
 
     public boolean matchWriter(Long id) {
         return this.writer.matchId(id);
+    }
+
+    public boolean hasAnswer() {
+        if (answers.size() == 0) return false;
+        return true;
+    }
+
+    public boolean matchQuestionWriterAndAllAnswerWriter() {
+        if (answers.size() == answers.stream()
+                .filter(answer -> answer.isMatched(writer.getId()))
+                .count())
+            return true;
+        return false;
+    }
+
+    public boolean canDelete(Long sessionId) {
+        if (!matchWriter(sessionId))
+            return false;
+        if (hasAnswer() && !matchQuestionWriterAndAllAnswerWriter())
+            return false;
+        return true;
+    }
+
+    public void delete() {
+        answers.stream()
+                .forEach(answer -> answer.setDeleted(true));
+        deleted = true;
     }
 
     @Override

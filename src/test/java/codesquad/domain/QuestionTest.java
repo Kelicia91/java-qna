@@ -3,6 +3,9 @@ package codesquad.domain;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.junit.Assert.*;
 
 public class QuestionTest {
@@ -68,5 +71,92 @@ public class QuestionTest {
     @Test
     public void matchWriter_다른Writer() {
         assertEquals(false, question.matchWriter(-1L));
+    }
+
+    @Test
+    public void hasAnswerFalse() {
+        question.setAnswers(new ArrayList<>());
+        assertEquals(false, question.hasAnswer());
+    }
+
+    @Test
+    public void hasAnswerTrue() {
+        List<Answer> answers = new ArrayList<>();
+        answers.add(new Answer());
+        question.setAnswers(answers);
+        assertEquals(true, question.hasAnswer());
+    }
+
+    @Test
+    public void matchQuestionWriterAndAllAnswerWriter_성공() {
+        User testUser = new User();
+        testUser.setId(1L);
+        List<Answer> answers = new ArrayList<>();
+        answers.add(new Answer(null, testUser, null));
+        question.setAnswers(answers);
+        assertEquals(true, question.matchQuestionWriterAndAllAnswerWriter());
+    }
+
+    @Test
+    public void matchQuestionWriterAndAllAnswerWriter_실패() {
+        User testUser = new User();
+        testUser.setId(2L);
+        List<Answer> answers = new ArrayList<>();
+        answers.add(new Answer(null, testUser, null));
+        question.setAnswers(answers);
+        assertEquals(false, question.matchQuestionWriterAndAllAnswerWriter());
+    }
+
+    @Test
+    public void canDelete_성공_answer_없는경우() {
+        question.setAnswers(new ArrayList<>());
+        assertEquals(true, question.canDelete(1L));
+    }
+
+    @Test
+    public void canDelete_성공_모든_answerWriter가_questionWriter와_동일() {
+        List<Answer> answers = new ArrayList<>();
+        answers.add(new Answer(null, user, null));
+        question.setAnswers(answers);
+        assertEquals(true, question.canDelete(1L));
+    }
+
+    @Test
+    public void canDelete_실패_로그인사용자와_질문작성자가_다름() {
+        Long testUserId = 2L;
+        assertEquals(false, question.canDelete(testUserId));
+    }
+
+    @Test
+    public void canDelete_실패_answerWriter가_questionWriter가_아님() {
+        Long questionWriterId = 1L;
+        Long answerWriterId = 2L;
+        User answerWriter = new User();
+        answerWriter.setId(answerWriterId);
+        List<Answer> answers = new ArrayList<>();
+        answers.add(new Answer(null, answerWriter, null));
+        question.setAnswers(answers);
+        assertEquals(false, question.canDelete(questionWriterId));
+    }
+
+    @Test
+    public void delete(){
+        List<Answer> answers = new ArrayList<>();
+        answers.add(new Answer());
+        answers.add(new Answer());
+        question.setAnswers(answers);
+
+        question.delete();
+
+        boolean isDeletedAllAnswer = false;
+        List<Answer> actualAnswers = question.getAnswers();
+        if (actualAnswers.size() == actualAnswers.stream()
+                                                .filter(answer -> answer.isDeleted())
+                                                .count())
+        {
+            isDeletedAllAnswer = true;
+        }
+
+        assertEquals(true , (question.isDeleted() && isDeletedAllAnswer));
     }
 }
