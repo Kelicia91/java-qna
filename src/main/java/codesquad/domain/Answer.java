@@ -73,10 +73,6 @@ public class Answer {
         this.contents = contents;
     }
 
-    public boolean isMatched(Long writerId){
-        return writer.getId().equals(writerId);
-    }
-
     public boolean isDeleted() {
         return deleted;
     }
@@ -85,12 +81,23 @@ public class Answer {
         this.deleted = deleted;
     }
 
+    public boolean matchWriter(Long writerId){
+        return writer.getId().equals(writerId);
+    }
+
+    public void delete(Long loginUserId) {
+        if (matchWriter(loginUserId)) {
+            setDeleted(true);
+        }
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Answer answer = (Answer) o;
-        return Objects.equals(id, answer.id) &&
+        return deleted == answer.deleted &&
+                Objects.equals(id, answer.id) &&
                 Objects.equals(question, answer.question) &&
                 Objects.equals(writer, answer.writer) &&
                 Objects.equals(contents, answer.contents);
@@ -98,7 +105,6 @@ public class Answer {
 
     @Override
     public int hashCode() {
-
-        return Objects.hash(id, question, writer, contents);
+        return Objects.hash(id, question, writer, contents, deleted);
     }
 }

@@ -83,9 +83,7 @@ public class QuestionController {
     public String delete(@PathVariable long id, HttpSession httpSession) {
         Long sessionId = Authentication.getId(httpSession).orElseThrow(UserSessionNotFoundException::new);
         Question question = questionRepository.findById(id).orElseThrow(QuestionNotFoundException::new);
-        if (!question.canDelete(sessionId))
-            throw new ForbiddenDeleteQuestionException();
-        question.delete();
+        question.delete(sessionId);
         questionRepository.save(question);
         return "redirect:/";
     }

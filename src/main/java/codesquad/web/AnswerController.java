@@ -44,10 +44,8 @@ public class AnswerController {
     public String delete(@PathVariable Long questionId, @PathVariable Long answerId, HttpSession httpSession) {
         Answer answer = answerRepository.findById(answerId).get();
         Long userId = Authentication.getId(httpSession).orElseThrow(UserSessionNotFoundException::new);
-        if (answer.isMatched(userId)) {
-            answerRepository.delete(answer);
-        }
-
+        answer.delete(userId);
+        answerRepository.save(answer);
         return String.format("redirect:/questions/%d", questionId);
     }
 }

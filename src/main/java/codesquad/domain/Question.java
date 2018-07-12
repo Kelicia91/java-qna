@@ -1,5 +1,7 @@
 package codesquad.domain;
 
+import codesquad.exception.ForbiddenDeleteQuestionException;
+
 import javax.persistence.*;
 import java.util.List;
 import java.util.Objects;
@@ -104,8 +106,8 @@ public class Question {
         return id.equals(question.id);
     }
 
-    public boolean matchWriter(Long id) {
-        return this.writer.matchId(id);
+    public boolean matchWriter(Long writerId) {
+        return this.writer.matchId(writerId);
     }
 
     public boolean hasAnswer() {
@@ -115,7 +117,7 @@ public class Question {
 
     public boolean matchQuestionWriterAndAllAnswerWriter() {
         if (answers.size() == answers.stream()
-                .filter(answer -> answer.isMatched(writer.getId()))
+                .filter(answer -> answer.matchWriter(writer.getId()))
                 .count())
             return true;
         return false;
@@ -129,7 +131,9 @@ public class Question {
         return true;
     }
 
-    public void delete() {
+    public void delete(Long loginUserId) {
+        if (!canDelete(loginUserId))
+            throw new ForbiddenDeleteQuestionException();
         answers.stream()
                 .forEach(answer -> answer.setDeleted(true));
         deleted = true;
@@ -140,14 +144,16 @@ public class Question {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Question question = (Question) o;
-        return Objects.equals(id, question.id) &&
+        return deleted == question.deleted &&
+                Objects.equals(id, question.id) &&
                 Objects.equals(writer, question.writer) &&
                 Objects.equals(title, question.title) &&
-                Objects.equals(contents, question.contents);
+                Objects.equals(contents, question.contents) &&
+                Objects.equals(answers, question.answers);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, writer, title, contents);
+        return Objects.hash(id, writer, title, contents, answers, deleted);
     }
 }
