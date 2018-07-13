@@ -24,7 +24,7 @@ public class Question {
     private String contents;
 
     // answer repository 를 만들지 않아도 cascade 설정만으로 crud 가능!
-    @OneToMany(mappedBy = "question", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "question", fetch = FetchType.LAZY)
     //@OrderBy("answerId DESC")
     //@JsonIgnore
     private List<Answer> answers;
