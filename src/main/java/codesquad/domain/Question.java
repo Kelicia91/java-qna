@@ -1,6 +1,7 @@
 package codesquad.domain;
 
 import codesquad.exception.ForbiddenDeleteQuestionException;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
 import java.util.List;
@@ -25,8 +26,7 @@ public class Question {
 
     // answer repository 를 만들지 않아도 cascade 설정만으로 crud 가능!
     @OneToMany(mappedBy = "question", fetch = FetchType.LAZY)
-    //@OrderBy("answerId DESC")
-    //@JsonIgnore
+    @JsonIgnore
     private List<Answer> answers;
 
     @Column
